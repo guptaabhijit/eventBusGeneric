@@ -7,3 +7,6 @@ The channel will <br> receive the data when publisher publishes data to the topi
 
 - Redis Pub/Sub messaging paradigm allows applications talk to each other through subscription to channels.<br>
 This allows decoupling between publishers and subscribers, Subscribers express interest in one or more <br> channels, and only receive messages that are of interest,  without knowledge of any publishers.
+
+
+Todo: Add more drivers such as kafka or other queueing system.
