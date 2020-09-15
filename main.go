@@ -1,45 +1,48 @@
 package main
 
 import (
-	"github.com/razorpay/pubSub/driver"
+	"github.com/razorpay/eventBusGeneric/driver"
+	"log"
 	"time"
 )
 
-func redisEvent() {
-	var redisPubSub = driver.GetPubSub()
+func inMemoryPubSub() {
+	// In memory driver for event bus
+	pubSub := driver.GetInMemoryEventBus()
 
-	// Create a subscriber
-	redisPubSub.Subscribe("topic1", nil)
-	redisPubSub.Subscribe("topic2", nil)
+	eventBus := driver.New(pubSub)
 
-	//log.Print("Subscriptions done. Publishing...")
+	eventBus.SubscribeMessage("topic1", make(driver.DataChannel))
+	eventBus.SubscribeMessage("topic1", make(driver.DataChannel))
 
-	redisPubSub.Publish("topic1", "topic 1 data")
-	redisPubSub.Publish("topic2", "topic 2 data")
-	redisPubSub.Publish("topic1", "topic 1 again data")
-	redisPubSub.Publish("topic2", "topic 2 again data")
+	eventBus.PublishMessage("topic1", "topic 1 data")
+	eventBus.PublishMessage("topic2", "topic 2 data")
+
 }
+func redisPubSub() {
+	pubSub := driver.GetRedisEvent()
 
-func inMemoryEvent() {
-	eb := driver.GetEventBus()
+	eventBus := driver.New(pubSub)
 
-	ch1 := make(driver.DataChannel)
-	ch2 := make(driver.DataChannel)
+	eventBus.SubscribeMessage("topic1", callBackFunc)
+	eventBus.SubscribeMessage("topic1", callBackFunc)
 
-	eb.Subscribe("topic1", ch1)
-	eb.Subscribe("topic2", ch2)
+	eventBus.PublishMessage("topic1", "topic 1 data")
+	eventBus.PublishMessage("topic2", "topic 2 data")
 
-	eb.Publish("topic1", "topic 1 data ")
-	eb.Publish("topic2", "topic 2 data ")
-
-	go driver.Background(ch1, ch2)
 }
 
 func main() {
-	redisEvent()
-	inMemoryEvent()
+
+	//redisPubSub()
+	inMemoryPubSub()
 
 	for {
 		time.Sleep(time.Second)
 	}
+}
+
+func callBackFunc(channel string, payload string) {
+	log.Printf("Channel: %v  :: Payload: %v.\n", channel, payload)
+
 }

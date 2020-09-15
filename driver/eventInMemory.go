@@ -20,7 +20,7 @@ type EventBus struct {
 	rm          sync.RWMutex
 }
 
-func GetEventBus() *EventBus {
+func GetInMemoryEventBus() *EventBus {
 	var eb = &EventBus{
 		subscribers: map[string]DataChannelSlice{},
 	}
@@ -49,6 +49,9 @@ func (eb *EventBus) Subscribe(topic string, ch interface{}) {
 	} else {
 		eb.subscribers[topic] = append([]DataChannel{}, ch.(DataChannel))
 	}
+
+	go Background(ch.(DataChannel))
+
 	eb.rm.Unlock()
 }
 
@@ -56,13 +59,11 @@ func PrintDataEvent(ch string, data DataEvent) {
 	fmt.Printf("Channel: %s; Topic: %s; DataEvent: %v\n", ch, data.Topic, data.Data)
 }
 
-func Background(ch1 DataChannel, ch2 DataChannel) {
+func Background(ch1 DataChannel) {
 	for {
 		select {
 		case d := <-ch1:
 			go PrintDataEvent("ch1", d)
-		case d := <-ch2:
-			go PrintDataEvent("ch2", d)
 		}
 	}
 }

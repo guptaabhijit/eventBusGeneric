@@ -2,17 +2,18 @@ package driver
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-redis/redis"
 	"log"
 	"time"
 )
 
 type Subscriber struct {
-	pubsub  *redis.PubSub
-	channel string
-	//callback processFunc
+	pubsub   *redis.PubSub
+	channel  string
+	callback processFunc
 }
+
+type processFunc func(string, string)
 
 type PubSub struct {
 	Client *redis.Client
@@ -20,7 +21,7 @@ type PubSub struct {
 
 var Service *PubSub
 
-func GetPubSub() *PubSub {
+func GetRedisEvent() *PubSub {
 	var client *redis.Client
 
 	client = redis.NewClient(&redis.Options{
@@ -46,17 +47,13 @@ func (s *PubSub) Publish(channel string, message interface{}) {
 	}
 }
 
-//func (s *PubSub) PublishString(channel, message string) *redis.IntCmd {
-//	return s.client.Publish(channel, message)
-//}
-
 func (s *PubSub) Subscribe(channel string, chanOrCallBack interface{}) {
 	var err error
 
 	subscriber := Subscriber{
-		pubsub:  Service.Client.Subscribe(),
-		channel: channel,
-		//callback: fn,
+		pubsub:   Service.Client.Subscribe(),
+		channel:  channel,
+		callback: chanOrCallBack.(func(string, string)),
 	}
 
 	err = subscriber.pubsub.Subscribe(channel)
@@ -73,21 +70,13 @@ func (s *Subscriber) listen() error {
 
 	for {
 		msg, _ := s.pubsub.ReceiveTimeout(time.Second)
-		//if err != nil {
-		//	if reflect.TypeOf(err) == reflect.TypeOf(&net.OpError{}) && reflect.TypeOf(err.(*net.OpError).Err).String() == "*net.timeoutError" {
-		//		// Timeout, ignore
-		//		continue
-		//	}
-		//	// Actual error
-		//	log.Print("Error in ReceiveTimeout()", err)
-		//}
 
 		channel = ""
 		payload = ""
 
 		switch m := msg.(type) {
 		case *redis.Subscription:
-			log.Printf("Subscription Message: %v to channel '%v'. %v total subscriptions.", m.Kind, m.Channel, m.Count)
+			log.Printf("Subscription Message: %v to channel '%v'. %v total subscriptions.\n", m.Kind, m.Channel, m.Count)
 			continue
 		case *redis.Message:
 			channel = m.Channel
@@ -98,8 +87,8 @@ func (s *Subscriber) listen() error {
 			continue
 		}
 
-		fmt.Printf("channel: %s Topic: %s\n", channel, payload)
+		log.Printf("channel: %s Topic: %s\n", channel, payload)
 
-		//go s.callback(channel, payload)
+		go s.callback(channel, payload)
 	}
 }
