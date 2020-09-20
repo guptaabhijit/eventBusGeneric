@@ -55,6 +55,13 @@ func (eb *EventBus) Subscribe(topic string, ch interface{}) {
 	eb.rm.Unlock()
 }
 
+func (eb *EventBus) UnSubscribe(topic string) {
+	eb.rm.Lock()
+
+	delete(eb.subscribers, topic)
+	eb.rm.Unlock()
+}
+
 func PrintDataEvent(ch string, data DataEvent) {
 	fmt.Printf("Channel: %s; Topic: %s; DataEvent: %v\n", ch, data.Topic, data.Data)
 }

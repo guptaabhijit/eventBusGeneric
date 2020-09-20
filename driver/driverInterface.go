@@ -3,6 +3,7 @@ package driver
 type Driver interface {
 	Publish(channel string, message interface{})
 	Subscribe(channel string, chanOrCallBack interface{})
+	UnSubscribe(topic string)
 }
 
 type Client struct {
@@ -20,4 +21,8 @@ func (c *Client) PublishMessage(channel string, message interface{}) {
 
 func (c *Client) SubscribeMessage(channel string, chanOrCallBack interface{}) {
 	c.driver.Subscribe(channel, chanOrCallBack)
+}
+
+func (c *Client) UnSubscribeMessage(channel string) {
+	c.driver.UnSubscribe(channel)
 }

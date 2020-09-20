@@ -17,6 +17,7 @@ type processFunc func(string, string)
 
 type PubSub struct {
 	Client *redis.Client
+	sub    Subscriber
 }
 
 var Service *PubSub
@@ -61,7 +62,16 @@ func (s *PubSub) Subscribe(channel string, chanOrCallBack interface{}) {
 		log.Println("Error subscribing to channel.")
 	}
 
+	s.sub = subscriber
+
 	go subscriber.listen()
+}
+
+func (s *PubSub) UnSubscribe(topic string) {
+	err := s.sub.pubsub.Unsubscribe(topic)
+	if err != nil {
+		log.Printf("Error Unsubscribing to topic %v.\n", topic)
+	}
 }
 
 func (s *Subscriber) listen() error {
@@ -87,7 +97,7 @@ func (s *Subscriber) listen() error {
 			continue
 		}
 
-		log.Printf("channel: %s Topic: %s\n", channel, payload)
+		//log.Printf("channel: %s Topic: %s\n", channel, payload)
 
 		go s.callback(channel, payload)
 	}

@@ -13,10 +13,15 @@ func inMemoryPubSub() {
 	eventBus := driver.New(pubSub)
 
 	eventBus.SubscribeMessage("topic1", make(driver.DataChannel))
-	eventBus.SubscribeMessage("topic1", make(driver.DataChannel))
+	eventBus.SubscribeMessage("topic2", make(driver.DataChannel))
 
 	eventBus.PublishMessage("topic1", "topic 1 data")
 	eventBus.PublishMessage("topic2", "topic 2 data")
+
+	eventBus.UnSubscribeMessage("topic2")
+
+	eventBus.PublishMessage("topic1", "new topic 1 data")
+	eventBus.PublishMessage("topic2", "new topic 2 data")
 
 }
 func redisPubSub() {
@@ -25,11 +30,15 @@ func redisPubSub() {
 	eventBus := driver.New(pubSub)
 
 	eventBus.SubscribeMessage("topic1", callBackFunc)
-	eventBus.SubscribeMessage("topic1", callBackFunc)
+	eventBus.SubscribeMessage("topic2", callBackFunc)
 
 	eventBus.PublishMessage("topic1", "topic 1 data")
 	eventBus.PublishMessage("topic2", "topic 2 data")
 
+	eventBus.UnSubscribeMessage("topic2")
+
+	eventBus.PublishMessage("topic1", "new topic 1 data")
+	eventBus.PublishMessage("topic2", "new topic 2 data")
 }
 
 func main() {
